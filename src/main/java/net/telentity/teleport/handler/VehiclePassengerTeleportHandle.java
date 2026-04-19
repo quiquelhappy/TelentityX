@@ -40,6 +40,15 @@ public class VehiclePassengerTeleportHandle implements TeHandle {
         // unused here, but a good example of what this does is in the LeashTeleportHandle
     }
 
+    /**
+     * Passengers must wait longer than the vehicle's afterTeleport delay (3 ticks) so that
+     * VehicleTeleportHandle has already remounted the player before we try to add the passenger.
+     */
+    @Override
+    public long afterTeleportDelayTicks() {
+        return 8L;
+    }
+
     @Override
     public void afterTeleport(@NotNull Player player, @NotNull Entity entity) {
         // player.getVehicle() may be null here if VehicleTeleportHandle.afterTeleport hasn't

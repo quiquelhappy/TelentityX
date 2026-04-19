@@ -19,4 +19,13 @@ public interface TeHandle {
     void beforeTeleport(@NotNull Player player, @NotNull Entity entity);
 
     void afterTeleport(@NotNull Player player, @NotNull Entity entity);
+
+    /**
+     * How many ticks after the entity's teleport to call {@link #afterTeleport}.
+     * Handlers that depend on other handlers having already run (e.g. passengers
+     * waiting for the vehicle to remount the player) should return a higher value.
+     */
+    default long afterTeleportDelayTicks() {
+        return 3L;
+    }
 }

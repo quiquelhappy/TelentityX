@@ -75,11 +75,13 @@ public abstract class AbstractTeleportListener implements Listener {
                     handlers.forEach(handler -> handler.beforeTeleport(player, entity));
                     beforeTeleport(player, entity, sameWorld);
                     entity.teleportAsync(to);
+                    final long afterDelay = handlers.stream()
+                            .mapToLong(TeHandle::afterTeleportDelayTicks).max().orElse(3L);
                     Telentity.getScheduler().runAtEntityLater(entity, (t3) -> {
                         handlers.forEach(handler -> handler.afterTeleport(player, entity));
                         afterTeleport(player, entity, sameWorld);
                         regiStore.getChunkEnforcer().unregister(chunk);
-                    }, 3);
+                    }, afterDelay);
                 })
             );
 
