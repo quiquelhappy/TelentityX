@@ -1,5 +1,6 @@
 package net.telentity.enforce.chunk;
 
+import net.telentity.Telentity;
 import net.telentity.api.registrable.Registrable;
 import org.bukkit.Chunk;
 import org.bukkit.plugin.Plugin;
@@ -20,7 +21,7 @@ public class ChunkForceToggleEnforcer extends Registrable<Chunk> {
     private final Set<Chunk> preForced = new HashSet<>();
 
     public ChunkForceToggleEnforcer(Plugin plugin) {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+        Telentity.getScheduler().runTimer((t) -> {
             registered.forEach(chunk -> {
                 if (chunk.isForceLoaded()) return;
                 preForced.remove(chunk);

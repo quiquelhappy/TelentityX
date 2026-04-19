@@ -1,5 +1,6 @@
 package net.telentity.unmount.impl;
 
+import net.telentity.Telentity;
 import net.telentity.api.tools.EntityTools;
 import net.telentity.api.watcher.Unmount;
 import org.bukkit.entity.Entity;
@@ -26,7 +27,7 @@ public sealed abstract class AbstractUnmount implements Listener, Unmount
     protected void setLastUnmount(Entity ejected, Entity vehicle) {
         if (!(ejected instanceof Player player) || vehicle == null) return;
         if (!toolkit.getEntityPassengerTools().isDriver(vehicle, player)) return;
-        plugin.getServer().getScheduler().runTask(plugin, () -> vehicles.remove(player));
+        Telentity.getScheduler().runAtEntity(player, (t) -> vehicles.remove(player));
         vehicles.put(player, vehicle);
     }
 

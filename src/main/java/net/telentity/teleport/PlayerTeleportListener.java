@@ -1,5 +1,6 @@
 package net.telentity.teleport;
 
+import net.telentity.Telentity;
 import net.telentity.api.registrable.RegiStore;
 import net.telentity.api.tools.EntityShowHide;
 import net.telentity.store.TeStore;
@@ -43,21 +44,20 @@ public class PlayerTeleportListener implements Listener {
         regiStore.getChunkEnforcer().register(toChunk);
 
         final var player = event.getPlayer();
-        final var scheduler = plugin.getServer().getScheduler();
 
         ((TeStore) regiStore.getTeleportHandleStore()).collect(player, to).forEach((entity, handlers) -> {
             final var chunk = entity.getWorld().getChunkAt(entity.getLocation());
             regiStore.getChunkEnforcer().register(chunk);
             handlers.forEach(handler -> handler.beforeTeleport(player, entity));
             beforeTeleport(player, entity, sameWorld);
-            scheduler.runTask(plugin, () -> entity.teleport(to));
-            scheduler.runTaskLater(plugin, () -> {
+            Telentity.getScheduler().runAtEntity(entity, (t) -> entity.teleport(to));
+            Telentity.getScheduler().runAtEntityLater(entity, (t) -> {
                 handlers.forEach(handler -> handler.afterTeleport(player, entity));
                 afterTeleport(player, entity, sameWorld);
                 regiStore.getChunkEnforcer().unregister(chunk);
             }, 3);
         });
-        scheduler.runTaskLater(plugin, () -> regiStore.getChunkEnforcer().unregister(toChunk), 4);
+        Telentity.getScheduler().runLater((t) -> regiStore.getChunkEnforcer().unregister(toChunk), 4);
     }
 
     private void beforeTeleport(Player player, Entity entity, boolean refresh) {

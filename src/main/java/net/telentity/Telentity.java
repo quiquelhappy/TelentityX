@@ -1,5 +1,7 @@
 package net.telentity;
 
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.PlatformScheduler;
 import net.telentity.api.registrable.RegiStore;
 import net.telentity.api.tools.EntityTools;
 import net.telentity.store.MainRegiStore;
@@ -16,8 +18,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 
 public final class Telentity extends JavaPlugin {
+
+    private static PlatformScheduler scheduler;
+
+    public static PlatformScheduler getScheduler() {
+        return Telentity.scheduler;
+    }
+
     @Override
     public void onEnable() {
+        Telentity.scheduler = new FoliaLib(this).getScheduler();
+
         final var regiStore = new MainRegiStore(this);
         final var entityTools = new MainEntityTools(this);
         final var unmount = new UnmountResolver(entityTools, this).getUnmount();
