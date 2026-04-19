@@ -38,22 +38,32 @@ public abstract class AbstractTeleportListener implements Listener {
             case UNKNOWN -> { if (sameWorld && from.distanceSquared(to) <= 3.5) { return; } }
         }
 
-        final var toChunk = toWorld.getChunkAt(to);
-        regiStore.getChunkEnforcer().register(toChunk);
+        // collect() accesses player's nearby entities — safe on the player's current region thread
+        final var entities = ((TeStore) regiStore.getTeleportHandleStore()).collect(player, to);
 
-        ((TeStore) regiStore.getTeleportHandleStore()).collect(player, to).forEach((entity, handlers) -> {
-            final var chunk = entity.getWorld().getChunkAt(entity.getLocation());
-            regiStore.getChunkEnforcer().register(chunk);
-            handlers.forEach(handler -> handler.beforeTeleport(player, entity));
-            beforeTeleport(player, entity, sameWorld);
-            Telentity.getScheduler().runAtEntity(entity, (t) -> entity.teleportAsync(to));
-            Telentity.getScheduler().runAtEntityLater(entity, (t) -> {
-                handlers.forEach(handler -> handler.afterTeleport(player, entity));
-                afterTeleport(player, entity, sameWorld);
-                regiStore.getChunkEnforcer().unregister(chunk);
-            }, 3);
+        // Register destination chunk on the region that owns the destination location
+        Telentity.getScheduler().runAtLocation(to, (t) -> {
+            final var toChunk = toWorld.getChunkAt(to);
+            regiStore.getChunkEnforcer().register(toChunk);
+
+            entities.forEach((entity, handlers) ->
+                // Per-entity chunk access must run on the entity's own region thread
+                Telentity.getScheduler().runAtEntity(entity, (t2) -> {
+                    final var chunk = entity.getWorld().getChunkAt(entity.getLocation());
+                    regiStore.getChunkEnforcer().register(chunk);
+                    handlers.forEach(handler -> handler.beforeTeleport(player, entity));
+                    beforeTeleport(player, entity, sameWorld);
+                    entity.teleportAsync(to);
+                    Telentity.getScheduler().runAtEntityLater(entity, (t3) -> {
+                        handlers.forEach(handler -> handler.afterTeleport(player, entity));
+                        afterTeleport(player, entity, sameWorld);
+                        regiStore.getChunkEnforcer().unregister(chunk);
+                    }, 3);
+                })
+            );
+
+            Telentity.getScheduler().runAtLocationLater(to, (t2) -> regiStore.getChunkEnforcer().unregister(toChunk), 4);
         });
-        Telentity.getScheduler().runLater((t) -> regiStore.getChunkEnforcer().unregister(toChunk), 4);
     }
 
     protected void beforeTeleport(Player player, Entity entity, boolean refresh) {

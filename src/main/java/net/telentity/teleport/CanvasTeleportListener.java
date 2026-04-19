@@ -1,5 +1,6 @@
 package net.telentity.teleport;
 
+import io.canvasmc.canvas.event.EntityPostTeleportAsyncEvent;
 import io.canvasmc.canvas.event.EntityTeleportAsyncEvent;
 import net.telentity.api.registrable.RegiStore;
 import net.telentity.api.tools.EntityShowHide;
