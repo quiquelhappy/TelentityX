@@ -17,12 +17,16 @@
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
             <id>tcoded-releases</id>
             <url>https://repo.tcoded.com/releases</url>
+        </repository>
+        <repository>
+            <id>canvasmc-repo</id>
+            <url>https://maven.canvasmc.io/snapshots</url>
         </repository>
     </repositories>
 
@@ -69,8 +73,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>io.canvasmc.canvas</groupId>
+            <artifactId>canvas-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.21.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
