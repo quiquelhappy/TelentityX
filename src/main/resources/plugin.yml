@@ -3,6 +3,7 @@ name: "Telentity"
 version: ${project.version}
 authors: [ TheMrJezza, WolfYangFan ]
 folia-supported: true
+canvas-supported: true
 
 # Telentity will function on all versions.
 # Whether 3rd party 'Preventors' function relies on the
