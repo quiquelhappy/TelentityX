@@ -1,6 +1,7 @@
 package net.telentity.teleport;
 
 import net.telentity.Telentity;
+import net.telentity.api.TeHandle;
 import net.telentity.api.tools.EntityShowHide;
 import net.telentity.api.registrable.RegiStore;
 import net.telentity.store.TeStore;
@@ -11,6 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
+
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractTeleportListener implements Listener {
 
@@ -25,21 +29,38 @@ public abstract class AbstractTeleportListener implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    protected void handleTeleport(Player player, Location from, Location to, PlayerTeleportEvent.TeleportCause cause) {
-        if (to == null) return;
+    /**
+     * Collects the entities to teleport for a given player teleport event.
+     * Must be called while the player is still at {@code from} (pre-teleport).
+     * Returns {@code null} if the teleport should be ignored.
+     */
+    protected Map<Entity, Set<TeHandle>> collectEntities(Player player, Location from, Location to,
+                                                         PlayerTeleportEvent.TeleportCause cause) {
+        if (to == null) return null;
         final World fromWorld = from.getWorld();
         final World toWorld = to.getWorld();
-
-        if (fromWorld == null || toWorld == null) return;
+        if (fromWorld == null || toWorld == null) return null;
         final boolean sameWorld = fromWorld.equals(toWorld);
-
         switch (cause) {
-            case DISMOUNT, SPECTATE, EXIT_BED -> { return; }
-            case UNKNOWN -> { if (sameWorld && from.distanceSquared(to) <= 3.5) { return; } }
+            case DISMOUNT, SPECTATE, EXIT_BED -> { return null; }
+            case UNKNOWN -> { if (sameWorld && from.distanceSquared(to) <= 3.5) { return null; } }
         }
+        return ((TeStore) regiStore.getTeleportHandleStore()).collect(player, to);
+    }
 
-        // collect() accesses player's nearby entities — safe on the player's current region thread
-        final var entities = ((TeStore) regiStore.getTeleportHandleStore()).collect(player, to);
+    /** Full single-phase path used by Paper (event fires pre-teleport). */
+    protected void handleTeleport(Player player, Location from, Location to, PlayerTeleportEvent.TeleportCause cause) {
+        final var entities = collectEntities(player, from, to, cause);
+        if (entities == null) return;
+        processTeleport(player, to, entities);
+    }
+
+    /** Schedules the actual entity teleportation. Safe to call post-teleport. */
+    protected void processTeleport(Player player, Location to, Map<Entity, Set<TeHandle>> entities) {
+        final World toWorld = to.getWorld();
+        if (toWorld == null) return;
+        final World fromWorld = player.getWorld();
+        final boolean sameWorld = fromWorld.equals(toWorld);
 
         // Register destination chunk on the region that owns the destination location
         Telentity.getScheduler().runAtLocation(to, (t) -> {

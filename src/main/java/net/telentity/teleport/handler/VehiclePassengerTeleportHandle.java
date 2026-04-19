@@ -42,6 +42,11 @@ public class VehiclePassengerTeleportHandle implements TeHandle {
 
     @Override
     public void afterTeleport(@NotNull Player player, @NotNull Entity entity) {
-        passengerTools.addPassenger(player.getVehicle(), entity);
+        // player.getVehicle() may be null here if VehicleTeleportHandle.afterTeleport hasn't
+        // remounted the player yet (race condition). Retrieve the vehicle directly via the
+        // handle which falls back to lastUnmount() when the player isn't mounted yet.
+        final var vehicles = vehicleTeleportHandle.getEntitiesToTeleport(player);
+        if (vehicles.isEmpty()) return;
+        passengerTools.addPassenger(vehicles.getFirst(), entity);
     }
 }
