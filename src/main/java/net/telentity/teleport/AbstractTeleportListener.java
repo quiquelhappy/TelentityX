@@ -46,7 +46,7 @@ public abstract class AbstractTeleportListener implements Listener {
             regiStore.getChunkEnforcer().register(chunk);
             handlers.forEach(handler -> handler.beforeTeleport(player, entity));
             beforeTeleport(player, entity, sameWorld);
-            Telentity.getScheduler().runAtEntity(entity, (t) -> entity.teleport(to));
+            Telentity.getScheduler().runAtEntity(entity, (t) -> entity.teleportAsync(to));
             Telentity.getScheduler().runAtEntityLater(entity, (t) -> {
                 handlers.forEach(handler -> handler.afterTeleport(player, entity));
                 afterTeleport(player, entity, sameWorld);
